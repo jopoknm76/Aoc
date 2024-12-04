@@ -1026,14 +1026,42 @@ function isArrSafeWithRemoval(arr) {
   return(false);
 }
 
+function isStepValid(a,b) {
+  if(typeof a==='undefined'&&typeof b==='number') {return(true);}
+  if(typeof b==='undefined'&&typeof a==='number') {return(true);}
+  const step=a-b;
+  return(step>=1&&step<=3);
+}
+
+function isArrSafeWithRemovalNotBruteForce(arr) {
+  if(arr[0]>arr[arr.length-1]) {arr.reverse();}
+  let i=0;
+  let oneFailed=false;
+  while(i<arr.length-1) {
+    if(isStepValid(arr[i+1],arr[i]))   {i+=1; continue;}
+    if(oneFailed)                      {return(false); } 
+    oneFailed=true;
+    if(isStepValid(arr[i+2],arr[i]))   {i+=2; continue;}
+    if(isStepValid(arr[i+1],arr[i-1])) {i+=1; continue;}
+    return(false);
+  }
+  return(true);
+}
+
 let safeCount=0;
 let safeCountWithRemoval=0;
+let safeCountWithRemovalNotBruteForce=0;
 for(const row of input.split("\n")) {
   let safe=true;
   let rawArr=row.split(" ").map(e=>parseInt(e));
-  if(isArrSafe(rawArr)) {++safeCount;}
-  if(isArrSafeWithRemoval(rawArr)) {++safeCountWithRemoval;}
+  if(isArrSafe([...rawArr])) {++safeCount;}
+  if(isArrSafeWithRemoval([...rawArr])) {++safeCountWithRemoval;}
+  if(isArrSafeWithRemovalNotBruteForce([...rawArr])) {++safeCountWithRemovalNotBruteForce;}
 }
+console.log("safeCount");
 console.log(safeCount);
+console.log("safeCountWithRemoval");
 console.log(safeCountWithRemoval);
+console.log("safeCountWithRemovalNotBruteForce");
+console.log(safeCountWithRemovalNotBruteForce);
 </script>
