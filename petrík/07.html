@@ -858,24 +858,21 @@ for(const row of input.split("\n")) {
   tmp.items=tmpArr[1].split(" ").map(e=>parseInt(e)).filter(e=>!isNaN(e));
   rows.push(tmp);
 }
+const maxSafeInteger=Math.pow(2,53)-1;
 console.log(rows);
 /* FUNCTIONS *****************************************/
 function isPossible(row) {
   const operators=[];
-  console.log(row);
   for(let i=0;i<Math.pow(2,row.items.length-1);++i) {
-    //console.log(i);
     if(applyOperators(i,row.items)===row.result) {
       return(true);
     };
   }
   return(false);
-  //console.log(Math.pow(2,row.items.length));
-  //console.log(operators);
 }
+////////////////////////
 function applyOperators(operatorsInt,items) {
   let operator="+";
-  //let control="";
   let result=items[0];
   for(let i=0;i<items.length-1;++i) {
     operator="+";
@@ -890,17 +887,132 @@ function applyOperators(operatorsInt,items) {
         result+=items[i+1];
       break;
     }
-    //control+=operator;
+    if(result>maxSafeInteger) {return(result);}
   }
-  //console.log(control);
   return(result);
-  //console.log(operators);
 }
+////////////////////////
+function isPossibleWithConcat(row) {
+  //console.log(row);
+  for(let i=0;i<Math.pow(2,row.items.length-1);++i) {
+    const rowCopy=structuredClone(row);
+    rowCopy.items=applyConcat(i,row.items);
+    //console.log(rowCopy);
+    if(isPossible(rowCopy)) {
+      return(true);
+    }
+  }
+  return(false);
+}
+////////////////////////
+function applyConcat(concatInt,items) {
+  let resultString="";
+  for(let i=0;i<items.length;++i) {
+    resultString+=items[i];
+    if((Math.pow(2,i)&concatInt)>0) {
+      resultString+=",";
+    }
+  }
+  const resultArr=resultString.split(",").map(e=>parseInt(e)).filter(e=>!isNaN(e));
+  //console.log(concatInt)
+  //console.log(resultArr)
+  return(resultArr);
+}
+////////////////////////
+let maxLength=0;
+for(const row of rows) {
+  if(row.items.length>maxLength) {
+    maxLength=row.items.length;
+  }
+}
+maxLength=maxLength-1;
+const operations=[];
+let currentOperations=new Array(maxLength).fill("+");
+for(let i=0;i<Math.pow(3,maxLength);++i) {
+  operations.push(structuredClone(currentOperations));
+  currentOperations=incrementOperations(currentOperations);
+}
+////////////////////////
+function incrementOperations(operations) {
+  let carry=true;
+  for(let i=0;i<operations.length;++i) {
+    const rc=incrementOperation(operations[i]);
+    operations[i]=rc.operation;
+    if(!rc.carry) {
+      break;
+    }
+  }
+  return(operations);
+}
+////////////////////////
+function incrementOperation(operation) {
+  let carry=false;
+  switch(operation) {
+    case "+":
+      operation="*";
+    break;
+    case "*":
+      operation="&";
+    break;
+    case "&":
+      operation="+";
+      carry=true;
+    break;
+  }
+  return({operation,carry})
+}
+////////////////////////
+function applyOperatorsArray(operatorsArr,items) {
+  let result=items[0];
+  for(let i=1;i<items.length;++i) {
+    switch(operatorsArr[i-1]) {
+      case "*":
+        result*=items[i];
+      break;
+      case "+":
+        result+=items[i];
+      break;
+      case "&":
+        result=parseInt(`${result}${items[i]}`);
+      break;
+    }
+    if(result>maxSafeInteger) {return(result);}
+  }
+  return(result);
+}
+////////////////////////
+function isPossibleWithOperatorsArrays(row,operatorsArrays) {
+  const operators=[];
+  for(const item of operatorsArrays) {
+    if(applyOperatorsArray(item,row.items)===row.result) {
+      return(true);
+    };
+  }
+  return(false);
+}
+console.log(operations);
 /* PART ONE *****************************************/
+/*
 let sum=0;
 for(const row of rows) {
   if(!isPossible(row)) {continue;}
   sum+=row.result;
 }
 console.log(sum);
+/* PART TWO *****************************************/
+let sum=0;
+let no=0;
+for(const row of rows) {
+  ++no;
+  if(isPossibleWithOperatorsArrays(row,operations)) {
+    sum+=row.result;
+    continue;
+  }
+  console.log(no,row);
+}
+console.log(sum);
+
+
+
+
 </script> 
