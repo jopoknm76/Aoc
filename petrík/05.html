@@ -1366,6 +1366,7 @@ const orders=
 75,78,47,53,55,19,98
 18,41,95,36,89,35,39,87,68,73,13,21,49`;
 
+/* PARSE INPUT ************************************************************/
 const firsts=[];
 const seconds=[];
 for(const row of rules.split("\n")) {
@@ -1427,8 +1428,10 @@ function isOrderValid(order) {
   return(true);
 }
 */
+
+/* FUNCTIONS ******************************************************/
 function isOrderValid(order) {
-  console.log(order);
+  //console.log(order);
   for(let i=0;i<firsts.length;++i) {
     const first=firsts[i];
     const second=seconds[i];
@@ -1439,26 +1442,50 @@ function isOrderValid(order) {
       continue;
     }
     if(indexSecond<indexFirst) {
-      console.log("Broke rule ",first,second)
+      //console.log("Broke rule ",first,second)
       return(false);
     }
   }
   return(true);
 }
-
-
+function tryToFixOrder(order) {
+  const orderFixed=structuredClone(order);
+  for(let i=0;i<firsts.length;++i) {
+    const first=firsts[i];
+    const second=seconds[i];
+    const indexFirst=order.indexOf(first);
+    const indexSecond=order.indexOf(second);
+    if(indexFirst<0||indexSecond<0) {
+      continue;
+    }
+    if(indexSecond<indexFirst) {
+      orderFixed[indexFirst]=second;
+      orderFixed[indexSecond]=first;
+      break;
+    }
+  }
+  if(isOrderValid(orderFixed)) {
+    return(orderFixed);
+  }
+  return(tryToFixOrder(orderFixed));
+}
+/* PART ONE *****************************************************/
 let sum=0;
 for(const order of ordersParsed) {
   if(!isOrderValid(order)) {continue;}
   const middleFinger=Math.floor(order.length/2);
-  console.log("Passed");
-  console.log(order);
-  console.log(middleFinger);
-  console.log(order[middleFinger]);
   sum+=order[middleFinger];
 }
-
+console.log("Valid orders");
 console.log(sum);
-
-
+/* PART TWO *****************************************************/
+let sumFixed=0;
+for(const order of ordersParsed) {
+  if(isOrderValid(order)) {continue;}
+  const fixed=tryToFixOrder(order);
+  const middleFinger=Math.floor(fixed.length/2);
+  sumFixed+=fixed[middleFinger];
+}
+console.log("Fixed orders");
+console.log(sumFixed);
 </script>
