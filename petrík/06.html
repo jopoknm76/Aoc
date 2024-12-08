@@ -131,80 +131,103 @@
 ......................................#.#.........................................#.....#.............................#.........#.`;
 
 /* READ GRID *************************************************************/
-const grid=[];
+const baseGrid=[];
 let t=0;
 let l=0;
-let currentTop=0;
-let currentLeft=0;
-let currentDir="top";
+let startTop=0;
+let startLeft=0; 
 for(const row of input.split("\n")) {
   l=0;
-  grid[t]=[];
+  baseGrid[t]=[];
   for(const char of row.split("")) {
     let state=".";
     if(char==="#") {state="#";}
     if(char==="^") {
-      currentTop=t;
-      currentLeft=l;
+      startTop=t;
+      startLeft=l;
     }
-    grid[t][l]=state;
+    baseGrid[t][l]=state;
     ++l;
   }
   ++t;
-}; 
-/* PART ONE *************************************************************/
-function nextDirection(nextTop,nextLeft) {
-  if(!grid[nextTop]||!grid[nextTop][nextLeft]) {return("go");}
-  if(grid[nextTop][nextLeft]!=="#") {return("go");}
+};
+/* FUNCTIONS *************************************************************/
+function nextDirection(currentGrid,nextTop,nextLeft,currentDir) {
+  if(!currentGrid[nextTop]||!currentGrid[nextTop][nextLeft]) {return("go");}
+  if(currentGrid[nextTop][nextLeft]!=="#") {return("go");}
   switch(currentDir) {
     case "top": currentDir="right"; break;
     case "right": currentDir="down"; break;
     case "down": currentDir="left"; break;
     case "left": currentDir="top"; break;
   }
-  return("turned");
+  return(currentDir);
 }
 
-let failSafe=0;
-let exit=false;
-while(!exit) {
-  if(!grid[currentTop]||!grid[currentTop][currentLeft]) {
-    exit=true;
-    continue;
+function runGrid(currentGrid,currentTop,currentLeft) {
+  let currentDir="top";
+  let failSafe=0;
+  let exit=false;
+  let looped=false;
+  while(!exit) {
+    if(!currentGrid[currentTop]||!currentGrid[currentTop][currentLeft]) {
+      exit=true;
+      continue;
+    }
+    currentGrid[currentTop][currentLeft]="x";
+    let nextLeft=currentLeft;
+    let nextTop=currentTop;
+    switch(currentDir) {
+      case "top": --nextTop; break;
+      case "right": ++nextLeft; break;
+      case "down": ++nextTop; break;
+      case "left": --nextLeft; break;
+    }
+    const rc=nextDirection(currentGrid,nextTop,nextLeft,currentDir);
+    if(rc!=="go") {
+      currentDir=rc;
+      continue;
+    }
+    currentLeft=nextLeft;
+    currentTop=nextTop;
+    ++failSafe;
+    if(failSafe>10000) {
+      looped=true;
+      exit=true;
+    }
   }
-  grid[currentTop][currentLeft]="x";
-  let nextLeft=currentLeft;
-  let nextTop=currentTop;
-  switch(currentDir) {
-    case "top": --nextTop; break;
-    case "right": ++nextLeft; break;
-    case "down": ++nextTop; break;
-    case "left": --nextLeft; break;
+  if(looped) {return(-1);}
+  let visitedCount=0;
+  for(const row of currentGrid) {
+    for(const cell of row) {
+      if(cell==="x") {
+        ++visitedCount;
+      }
+    }
   }
-  const rc=nextDirection(nextTop,nextLeft);
-  if(rc!=="go") {
-    continue;
-  }
-  currentLeft=nextLeft;
-  currentTop=nextTop;
-  ++failSafe;
-  if(failSafe>100000) {
-    exit=true;
-  }
+  //console.log(currentGrid.map(e=>e.join("")).join("\n"));
+  return(visitedCount);
 }
+/* PART ONE *************************************************************/
+console.log(runGrid(structuredClone(baseGrid),startTop,startLeft));
 
-let visitedCount=0;
-for(const row of grid) {
-  for(const cell of row) {
-    if(cell==="x") {
-      ++visitedCount;
+/* PART TWO *************************************************************/
+let loopedCnt=0;
+const rows=baseGrid.length;
+const columns=baseGrid[0].length;
+console.log(rows,columns);
+for(let top=0;top<rows;++top) {
+  for(let left=0;left<columns;++left) {
+    if(left===startLeft&&top===startTop) {continue;}
+    if(baseGrid[top][left]===".") {
+      const clonedGrid=structuredClone(baseGrid);
+      clonedGrid[top][left]="#";
+      const result=runGrid(clonedGrid,startTop,startLeft);
+      if(result===-1) {
+        ++loopedCnt
+      }
     }
   }
 }
-
-console.log(currentTop,currentLeft,currentDir);
-console.log(grid);
-console.log(grid.map(e=>e.join("")).join("\n"));
-console.log(visitedCount);
-/* PART TWO *************************************************************/
+console.log(loopedCnt);
 </script>
