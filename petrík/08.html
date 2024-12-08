@@ -50,14 +50,14 @@ y....................W.b...m...................Y..
 .....D....................U............s..........
 ..............W..6...........tb...................`;
   /* PARSE DATA *****************************************************/
-  const grid=[];
+  const baseGrid=[];
   const freqGroups={};
   for(const row of input.split('\n')) {
-    grid.push(row.split(''));
+    baseGrid.push(row.split(''));
   }
-  for(let top=0;top<grid.length;top++) {
-    for(let left=0;left<grid[top].length;left++) {
-      const cell=grid[top][left];
+  for(let top=0;top<baseGrid.length;top++) {
+    for(let left=0;left<baseGrid[top].length;left++) {
+      const cell=baseGrid[top][left];
       if(cell===".") {
         continue;
       }
@@ -67,9 +67,10 @@ y....................W.b...m...................Y..
       freqGroups[cell].push({top,left});
     }
   }
-  console.log(grid);
+  console.log(baseGrid);
   console.log(freqGroups);
   /* PART ONE *****************************************************/
+  const firstGrid=structuredClone(baseGrid);
   for(const freqGroup of Object.values(freqGroups)) {
     for(const thisItem of freqGroup) {
       for(const otherItem of freqGroup) {
@@ -78,14 +79,14 @@ y....................W.b...m...................Y..
         if(dTop===0&&dLeft===0) {continue;}
         const antiNodeLeft=thisItem.left+dLeft;
         const antiNodeTop=thisItem.top+dTop;
-        if(grid[antiNodeTop]&&grid[antiNodeTop][antiNodeLeft]/*&&grid[antiNodeTop][antiNodeLeft]==="."*/) {
-          grid[antiNodeTop][antiNodeLeft]="#";
+        if(firstGrid[antiNodeTop]&&firstGrid[antiNodeTop][antiNodeLeft]) {
+          firstGrid[antiNodeTop][antiNodeLeft]="#";
         }
       }
     }
   }
   let sum=0;
-  for(const row of grid) {
+  for(const row of firstGrid) {
     for(const cell of row) {
       if(cell==="#") {
         ++sum;
@@ -93,6 +94,34 @@ y....................W.b...m...................Y..
     }
   }
   console.log(sum);
-  console.log(grid.map(e=>e.join("")).join("\n"));
+  console.log(firstGrid.map(e=>e.join("")).join("\n"));
+  /* PART TWO *****************************************************/
+  const secondGrid=structuredClone(baseGrid);
+  for(const freqGroup of Object.values(freqGroups)) {
+    for(const thisItem of freqGroup) {
+      for(const otherItem of freqGroup) {
+        const dTop=thisItem.top-otherItem.top;
+        const dLeft=thisItem.left-otherItem.left;
+        if(dTop===0&&dLeft===0) {continue;}
+        let antiNodeLeft=thisItem.left;
+        let antiNodeTop=thisItem.top;
+        while(secondGrid[antiNodeTop]&&secondGrid[antiNodeTop][antiNodeLeft]) {
+          secondGrid[antiNodeTop][antiNodeLeft]="#";
+          antiNodeLeft+=dLeft;
+          antiNodeTop+=dTop;
+        }
+      }
+    }
+  }
+  sum=0;
+  for(const row of secondGrid) {
+    for(const cell of row) {
+      if(cell==="#") {
+        ++sum;
+      }
+    }
+  }
+  console.log(sum);
+  console.log(secondGrid.map(e=>e.join("")).join("\n"));
   
 </script>
